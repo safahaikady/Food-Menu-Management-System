@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bill</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<body class="bill-page"></body>
+<h1>🧾 Your Bill</h1>
+
+<div id="bill-box" class="home-box">
+
+    <h2>Order Summary</h2>
+
+    <ul id="bill-items"></ul>
+
+    <h3>Total: ₹<span id="bill-total"></span></h3>
+
+    <button onclick="window.location.href='menu.html'">
+        Back to Menu
+    </button>
+
+</div>
+
+<script>
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let total = localStorage.getItem("total") || 0;
+
+let list = document.getElementById("bill-items");
+
+cart.forEach(function(i){
+    let li = document.createElement("li");
+    li.innerText = i.item + " - ₹" + i.price;
+    list.appendChild(li);
+});
+
+document.getElementById("bill-total").innerText = total;
+
+</script>
+
+</body>
+</html>
