@@ -3,57 +3,46 @@
 
 <head>
 
-    <title>QR Digital Menu</title>
+    <title>Welcome To Indian Restaurant</title>
+
+    <link rel="stylesheet" href="style.css">
 
     <style>
 
         body{
-            margin:0;
-            font-family:Arial;
-            background-image:url("images/restaurant-bg.jpg");
-            background-size:cover;
-            background-position:center;
-            height:100vh;
             display:flex;
             justify-content:center;
             align-items:center;
+            height:100vh;
+            background:url('images/restaurant-bg.jpg');
+            background-size:cover;
+            background-position:center;
         }
 
         .home-box{
-            background:rgba(0,0,0,0.7);
+            background:rgba(255,255,255,0.9);
             padding:40px;
-            border-radius:20px;
+            border-radius:15px;
             text-align:center;
-            color:white;
             width:400px;
+            box-shadow:0px 4px 10px rgba(0,0,0,0.3);
         }
 
         h1{
-            font-size:40px;
-            margin-bottom:10px;
+            color:darkred;
+            margin-bottom:20px;
         }
 
         p{
-            font-size:20px;
+            font-size:18px;
             margin-bottom:30px;
         }
 
-        a{
-            text-decoration:none;
-        }
-
         button{
-            background:orange;
-            color:white;
-            border:none;
-            padding:15px 30px;
+            width:200px;
+            padding:15px;
+            margin:10px;
             font-size:18px;
-            border-radius:10px;
-            cursor:pointer;
-        }
-
-        button:hover{
-            background:orangered;
         }
 
     </style>
@@ -62,24 +51,28 @@
 
 <body>
 
-    <div class="home-box">
+<div class="home-box">
 
-        <h1>🍴 Welcome</h1>
+    <h1>🍴 Indian Restaurant 🍴</h1>
 
-        <p>
-            Fresh • Hot • Delicious
-        </p>
+    <p>Select User Type</p>
 
-        <a href="menu.html">
+    <button onclick="window.location.href='home.html'">
 
-            <button>
-                View Menu
-            </button>
+        Customer
 
-        </a>
+    </button>
 
-    </div>
+    <br>
 
+    <button onclick="window.location.href='admin.html'">
+
+        Admin
+
+    </button>
+
+</div>
+<script src="script.js"></script>
 </body>
 
 </html>
