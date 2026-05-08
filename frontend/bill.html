@@ -6,40 +6,40 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
-<body class="bill-page"></body>
-<h1>🧾 Your Bill</h1>
+<body class="bill-page">
 
-<div id="bill-box" class="home-box">
+    <h1>🧾 Your Bill</h1>
 
-    <h2>Order Summary</h2>
+    <div id="bill-box" class="home-box">
 
-    <ul id="bill-items"></ul>
+        <h2>Order Summary</h2>
 
-    <h3>Total: ₹<span id="bill-total"></span></h3>
+        <ul id="bill-items"></ul>
 
-    <button onclick="window.location.href='menu.html'">
-        Back to Menu
-    </button>
+        <h3>Total: ₹<span id="bill-total"></span></h3>
 
-</div>
+        <button onclick="window.location.href='home.html'">
+            Back
+        </button>
 
-<script>
+    </div>
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-let total = localStorage.getItem("total") || 0;
+    <script>
 
-let list = document.getElementById("bill-items");
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        let total = localStorage.getItem("total") || 0;
 
-cart.forEach(function(i){
-    let li = document.createElement("li");
-    li.innerText = i.item + " - ₹" + i.price;
-    list.appendChild(li);
-});
+        let list = document.getElementById("bill-items");
 
-document.getElementById("bill-total").innerText = total;
+        cart.forEach(function(i) {
+            let li = document.createElement("li");
+            li.innerText = i.name + " - ₹" + i.price;
+            list.appendChild(li);
+        });
 
-</script>
+        document.getElementById("bill-total").innerText = total;
+
+    </script>
 
 </body>
 </html>

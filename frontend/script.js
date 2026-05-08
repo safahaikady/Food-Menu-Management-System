@@ -106,58 +106,144 @@ function login(){
 }
 
 
-/* ADD TO CART */
-function addToCart(item, price){
+// ADD TO CART
+function addToCart(name, price){
+
+    cart.push({
+
+        name: name,
+        price: price
+    });
 
     total += price;
 
-    cart.push({ item, price });
-
-    document.getElementById("total").innerText = total;
-
-    let li = document.createElement("li");
-    li.innerText = item + " - ₹" + price;
-    document.getElementById("cart-items").appendChild(li);
+    displayCart();
 }
 
-/* GENERATE BILL */
-function generateBill(){
 
+// DISPLAY CART
+function displayCart(){
+
+    let cartItems = document.getElementById("cart-items");
+
+    cartItems.innerHTML = "";
+
+    cart.forEach(function(item, index){
+
+        let li = document.createElement("li");
+
+        li.innerHTML = `
+
+            ${item.name} - ₹${item.price}
+
+            <button class="remove-btn" onclick="removeFromCart(${index})">
+                 ❌
+            </button>
+
+        `;
+
+        cartItems.appendChild(li);
+
+    });
+
+    document.getElementById("total").innerText = total;
+}
+
+
+// REMOVE ITEM
+function removeFromCart(index){
+
+    total -= cart[index].price;
+
+    cart.splice(index, 1);
+
+    displayCart();
+}
+
+
+// GENERATE BILL
+function generateBill(){
+    
     localStorage.setItem("cart", JSON.stringify(cart));
+
     localStorage.setItem("total", total);
 
     window.location.href = "bill.html";
 }
-
 /* ADD ITEM */
 
 function addItem(){
 
     let name = prompt("Enter Food Name");
 
+    if(name == null || name.trim() == ""){
+        alert("❌ Food name cannot be empty");
+        return;
+    }
+
+    name = name.trim();
+
     let price = prompt("Enter Price");
+
+    if(price == null || price.trim() == ""){
+        alert("❌ Price cannot be empty");
+        return;
+    }
+
+    if(isNaN(price) || Number(price) <= 0){
+        alert("❌ Enter valid price");
+        return;
+    }
 
     let image = prompt("Enter Image Path\nExample: images/pizza.jpg");
 
-    let menu = JSON.parse(localStorage.getItem("menu"));
+    if(image == null || image.trim() == ""){
+        alert("❌ Image path cannot be empty");
+        return;
+    }
 
+    image = image.trim();
+
+    let menu = JSON.parse(localStorage.getItem("menu")) || [];
+
+    // CHECK DUPLICATE ITEM
+    let exists = menu.some(function(item){
+
+        return item.name.toLowerCase() === name.toLowerCase();
+
+    });
+
+    if(exists){
+
+        alert("❌ Same item already exists in menu");
+
+        return;
+    }
+
+    // ADD NEW ITEM
     menu.push({
 
-        name:name,
-        price:price,
-        image:image
+        name: name,
+        price: Number(price),
+        image: image
     });
 
     localStorage.setItem("menu", JSON.stringify(menu));
 
     alert("✅ Item Added Successfully");
+
+    location.reload();
 }
-
-
 /* DELETE ITEM */
+
 function deleteItem(){
 
     let name = prompt("Enter Food Name To Delete");
+
+    if(name == null || name.trim() == ""){
+        alert("❌ Food name cannot be empty");
+        return;
+    }
 
     let menu = JSON.parse(localStorage.getItem("menu"));
 
@@ -167,7 +253,7 @@ function deleteItem(){
     });
 
     if(!exists){
-        alert("❌ Item not found in menu!");
+        alert("❌ Item not found in menu");
         return;
     }
 
@@ -177,7 +263,7 @@ function deleteItem(){
 
     localStorage.setItem("menu", JSON.stringify(updatedMenu));
 
-    alert("❌ Item Deleted Successfully");
+    alert("✅ Item Deleted Successfully");
 }
 
 
@@ -187,23 +273,49 @@ function updatePrice(){
 
     let name = prompt("Enter Food Name");
 
+    if(name == null || name.trim() == ""){
+        alert("❌ Food name cannot be empty");
+        return;
+    }
+
     let newPrice = prompt("Enter New Price");
+
+    if(newPrice == null || newPrice.trim() == ""){
+        alert("❌ Price cannot be empty");
+        return;
+    }
+
+    if(isNaN(newPrice) || Number(newPrice) <= 0){
+        alert("❌ Enter valid price");
+        return;
+    }
 
     let menu = JSON.parse(localStorage.getItem("menu"));
 
+    let itemFound = false;
+
     menu.forEach(function(item){
 
-        if(item.name == name){
+        if(item.name.toLowerCase() === name.toLowerCase()){
 
-            item.price = newPrice;
+            item.price = Number(newPrice);
+
+            itemFound = true;
         }
     });
 
-    localStorage.setItem("menu", JSON.stringify(menu));
+    if(itemFound){
 
-    alert("✅ Price Updated Successfully");
+        localStorage.setItem("menu", JSON.stringify(menu));
+
+        alert("✅ Price Updated Successfully");
+    }
+
+    else{
+
+        alert("❌ Item not found in menu");
+    }
 }
-
 
 /* EXIT */
 
@@ -220,4 +332,11 @@ fetch("http://localhost:5000")
 .then(res => res.text())
 .then(data => {
     console.log(data);
+});
+fetch("http://localhost:5000/api/foods")
+.then(res => res.json())
+.then(data => {
+
+    console.log(data);
+
 });
