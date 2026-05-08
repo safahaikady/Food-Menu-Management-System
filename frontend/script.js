@@ -14,11 +14,7 @@ if(localStorage.getItem("menu") == null){
             image: "images/chicken-biryani.jpg"
         },
 
-        {
-            name: "Masala Dosa",
-            price: 90,
-            image: "images/masala-dosa.jpg"
-        },
+
 
         {
             name: "Paneer Butter Masala",
