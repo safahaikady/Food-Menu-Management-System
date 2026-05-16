@@ -1,44 +1,65 @@
-const Food = require("../models/Food");
+const menu = require("../data/menuData");
 
-const getFoods = async (req, res) => {
+// GET all foods
+const getFoods = (req, res) => {
+    res.json(menu);
+};
 
-    try {
+// ADD food
+const addFood = (req, res) => {
+    const newFood = {
+        id: Date.now(),
+        name: req.body.name,
+        price: req.body.price,
+        image: req.body.image
+    };
 
-        const foods = await Food.find();
+    menu.push(newFood);
+    
+    res.json({
+    message: "✅ Item is added to menu",
+    item: newFood
+});
+};
 
-        res.json(foods);
+// DELETE food
+const deleteFood = (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = menu.findIndex(item => item.id === id);
 
-    } catch (error) {
-
-        res.status(500).json({
-            message: error.message
-        });
-
+    if (index !== -1) {
+        menu.splice(index, 1);
+        res.json({ message: "✅ Item deleted successfully"});
+    } else {
+        res.status(404).json({ error: "❌ Item not found" });
     }
 };
 
-const addFood = async (req, res) => {
+// UPDATE food
+const updateFood = (req, res) => {
+    const id = parseInt(req.params.id);
+    const item = menu.find(f => f.id === id);
 
-    try {
-
-        const newFood = new Food(req.body);
-
-        await newFood.save();
-
-        res.json({
-            message: "Food Added Successfully"
+    if (item) {
+        item.name = req.body.name || item.name;
+        item.price = req.body.price || item.price;
+        item.image = req.body.image || item.image;
+         res.json({
+            message: "✅ Item updated successfully",
+            item: item
         });
 
-    } catch (error) {
-
-        res.status(500).json({
-            message: error.message
+        
+    } else {
+        res.status(404).json({
+            message: "❌ Item not found"
         });
-
     }
 };
 
 module.exports = {
     getFoods,
-    addFood
+    addFood,
+    deleteFood,
+    updateFood
 };

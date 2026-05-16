@@ -4,40 +4,14 @@ let cart=[];
 
 /* DEFAULT MENU */
 
-if(localStorage.getItem("menu") == null){
-
-    let defaultMenu = [
-
-        {
-            name: "Chicken Biryani",
-            price: 250,
-            image: "images/chicken-biryani.jpg"
-        },
 
 
-
-        {
-            name: "Paneer Butter Masala",
-            price: 240,
-            image: "images/paneer-butter-masala.jpg"
-        },
-
-        {
-            name: "Gulab Jamun",
-            price: 80,
-            image: "images/gulab-jamun.jpg"
-        }
-    ];
-
-    localStorage.setItem("menu", JSON.stringify(defaultMenu));
-}
-
-
-/* LOAD MENU */
 
 function loadMenu(){
 
-    let menu = JSON.parse(localStorage.getItem("menu"));
+fetch("http://localhost:5000/api/foods")
+.then(res => res.json())
+.then(menu => {
 
     let menuContainer = document.getElementById("menu-items");
 
@@ -47,10 +21,9 @@ function loadMenu(){
 
     menuContainer.innerHTML = "";
 
-    menu.forEach(function(item,index){
+    menu.forEach(function(item){
 
         menuContainer.innerHTML += `
-
         <div class="food-card">
 
             <img src="${item.image}"
@@ -67,6 +40,9 @@ function loadMenu(){
         </div>
         `;
     });
+
+});
+
 }
 
 
@@ -166,8 +142,6 @@ function generateBill(){
 
     window.location.href = "bill.html";
 }
-/* ADD ITEM */
-
 function addItem(){
 
     let name = prompt("Enter Food Name");
@@ -176,8 +150,6 @@ function addItem(){
         alert("❌ Food name cannot be empty");
         return;
     }
-
-    name = name.trim();
 
     let price = prompt("Enter Price");
 
@@ -191,44 +163,39 @@ function addItem(){
         return;
     }
 
-    let image = prompt("Enter Image Path\nExample: images/pizza.jpg");
+    let image = prompt("Enter Image Path");
 
     if(image == null || image.trim() == ""){
         alert("❌ Image path cannot be empty");
         return;
     }
 
-    image = image.trim();
+    fetch("http://localhost:5000/api/foods", {
 
-    let menu = JSON.parse(localStorage.getItem("menu")) || [];
+        method: "POST",
 
-    // CHECK DUPLICATE ITEM
-    let exists = menu.some(function(item){
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-        return item.name.toLowerCase() === name.toLowerCase();
+        body: JSON.stringify({
+            name: name,
+            price: Number(price),
+            image: image
+        })
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert(data.message);
+
+        loadMenu();
 
     });
 
-    if(exists){
-
-        alert("❌ Same item already exists in menu");
-
-        return;
-    }
-
-    // ADD NEW ITEM
-    menu.push({
-
-        name: name,
-        price: Number(price),
-        image: image
-    });
-
-    localStorage.setItem("menu", JSON.stringify(menu));
-
-    alert("✅ Item Added Successfully");
-
-    location.reload();
 }
 /* DELETE ITEM */
 
@@ -241,28 +208,43 @@ function deleteItem(){
         return;
     }
 
-    let menu = JSON.parse(localStorage.getItem("menu"));
+     fetch("http://localhost:5000/api/foods")
+    .then(res => res.json())
+    .then(menu => {
 
-    // check if item exists
-    let exists = menu.some(function(item){
-        return item.name.toLowerCase() === name.toLowerCase();
+        // check if item exists
+        let item = menu.find(function(item){
+
+            return item.name.toLowerCase() === name.toLowerCase();
+
+        });
+
+        if(!item){
+
+            alert("❌ Item not found in menu");
+
+            return;
+        }
+
+        fetch(`http://localhost:5000/api/foods/${item.id}`, {
+
+            method: "DELETE"
+
+        })
+
+        .then(res => res.json())
+
+        .then(data => {
+
+            alert(data.message);
+
+            loadMenu();
+
+        });
+
     });
 
-    if(!exists){
-        alert("❌ Item not found in menu");
-        return;
-    }
-
-    let updatedMenu = menu.filter(function(item){
-        return item.name.toLowerCase() !== name.toLowerCase();
-    });
-
-    localStorage.setItem("menu", JSON.stringify(updatedMenu));
-
-    alert("✅ Item Deleted Successfully");
 }
-
-
 /* UPDATE PRICE */
 
 function updatePrice(){
@@ -286,33 +268,55 @@ function updatePrice(){
         return;
     }
 
-    let menu = JSON.parse(localStorage.getItem("menu"));
+    
 
-    let itemFound = false;
+     fetch("http://localhost:5000/api/foods")
+    .then(res => res.json())
+    .then(menu => {
 
-    menu.forEach(function(item){
+        let itemFound = menu.find(function(item){
 
-        if(item.name.toLowerCase() === name.toLowerCase()){
+            return item.name.toLowerCase() === name.toLowerCase();
 
-            item.price = Number(newPrice);
+        });
 
-            itemFound = true;
+        if(itemFound){
+
+            fetch(`http://localhost:5000/api/foods/${itemFound.id}`, {
+
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    price: Number(newPrice)
+                })
+
+            })
+
+            .then(res => res.json())
+
+            .then(data => {
+
+                alert(data.message);
+
+                loadMenu();
+
+            });
+
         }
+
+        else{
+
+            alert("❌ Item not found in menu");
+
+        }
+
     });
 
-    if(itemFound){
-
-        localStorage.setItem("menu", JSON.stringify(menu));
-
-        alert("✅ Price Updated Successfully");
-    }
-
-    else{
-
-        alert("❌ Item not found in menu");
-    }
 }
-
 /* EXIT */
 
 function exitPanel(){
@@ -324,11 +328,7 @@ function exitPanel(){
 /* AUTO LOAD MENU */
 
 loadMenu();
-fetch("http://localhost:5000")
-.then(res => res.text())
-.then(data => {
-    console.log(data);
-});
+
 fetch("http://localhost:5000/api/foods")
 .then(res => res.json())
 .then(data => {
