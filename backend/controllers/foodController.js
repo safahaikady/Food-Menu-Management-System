@@ -1,62 +1,121 @@
-const menu = require("../data/menuData");
+const db = require("../config/dbConfig");
 
 // GET all foods
 const getFoods = (req, res) => {
-    res.json(menu);
+    db.query("SELECT * FROM foods", (err, result) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            res.json(result);
+        }
+    });
 };
 
 // ADD food
 const addFood = (req, res) => {
-    const newFood = {
-        id: Date.now(),
-        name: req.body.name,
-        price: req.body.price,
-        image: req.body.image
-    };
 
-    menu.push(newFood);
-    
-    res.json({
-    message: "✅ Item is added to menu",
-    item: newFood
-});
+    const { name, price, image } = req.body;
+
+    // Check if item already exists
+    const checkQuery = "SELECT * FROM foods WHERE name = ?";
+
+    db.query(checkQuery, [name], (err, result) => {
+
+        if (result.length > 0) {
+            return res.json({
+                message: "❌ Item already exists"
+            });
+        }
+
+        const sql =
+            "INSERT INTO foods (name, price, image) VALUES (?, ?, ?)";
+
+        db.query(sql, [name, price, image], (err, result) => {
+
+            if (err) {
+                res.status(500).json({ error: err });
+            } else {
+                res.json({
+                    message: "✅ Item added successfully"
+                });
+            }
+        });
+    });
 };
 
-// DELETE food
 const deleteFood = (req, res) => {
-    const id = parseInt(req.params.id);
-    const index = menu.findIndex(item => item.id === id);
 
-    if (index !== -1) {
-        menu.splice(index, 1);
-        res.json({ message: "✅ Item deleted successfully"});
-    } else {
-        res.status(404).json({ error: "❌ Item not found" });
-    }
+    const name = req.params.name;
+
+    const checkQuery = "SELECT * FROM foods WHERE LOWER(name) = LOWER(?)";
+
+    db.query(checkQuery, [name], (err, result) => {
+
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (result.length === 0) {
+            return res.json({ message: "❌ Item not found" });
+        }
+
+        const sql = "DELETE FROM foods WHERE LOWER(name) = LOWER(?)";
+
+        db.query(sql, [name], (err) => {
+
+            if (err) return res.status(500).json({ error: err.message });
+
+            res.json({ message: "✅ Item deleted successfully" });
+        });
+    });
 };
 
-// UPDATE food
+// UPDATE food by name
+// UPDATE PRICE
 const updateFood = (req, res) => {
-    const id = parseInt(req.params.id);
-    const item = menu.find(f => f.id === id);
 
-    if (item) {
-        item.name = req.body.name || item.name;
-        item.price = req.body.price || item.price;
-        item.image = req.body.image || item.image;
-         res.json({
-            message: "✅ Item updated successfully",
-            item: item
+    console.log(req.params);
+    console.log(req.body);
+
+    const foodName = req.params.name;
+
+    const price = req.body.price;
+
+    const checkQuery =
+        "SELECT * FROM foods WHERE LOWER(name)=LOWER(?)";
+
+    db.query(checkQuery, [foodName], (err, result) => {
+
+        if (err) {
+            return res.status(500).json({
+                error: err.message
+            });
+        }
+
+        if (result.length === 0) {
+            return res.json({
+                message: "❌ Item not found"
+            });
+        }
+
+        const sql =
+            "UPDATE foods SET price=? WHERE LOWER(name)=LOWER(?)";
+
+        db.query(sql, [price, foodName], (err, result) => {
+
+            if (err) {
+                return res.status(500).json({
+                    error: err.message
+                });
+            }
+
+            res.json({
+                message: "✅ Price updated successfully"
+            });
+
         });
 
-        
-    } else {
-        res.status(404).json({
-            message: "❌ Item not found"
-        });
-    }
+    });
+
 };
-
 module.exports = {
     getFoods,
     addFood,

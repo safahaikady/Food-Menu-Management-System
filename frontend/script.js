@@ -203,116 +203,58 @@ function deleteItem(){
 
     let name = prompt("Enter Food Name To Delete");
 
-    if(name == null || name.trim() == ""){
+    if(!name || name.trim() === ""){
         alert("❌ Food name cannot be empty");
         return;
     }
 
-     fetch("http://localhost:5000/api/foods")
+    fetch(`http://localhost:5000/api/foods/${name}`, {
+        method: "DELETE"
+    })
     .then(res => res.json())
-    .then(menu => {
-
-        // check if item exists
-        let item = menu.find(function(item){
-
-            return item.name.toLowerCase() === name.toLowerCase();
-
-        });
-
-        if(!item){
-
-            alert("❌ Item not found in menu");
-
-            return;
-        }
-
-        fetch(`http://localhost:5000/api/foods/${item.id}`, {
-
-            method: "DELETE"
-
-        })
-
-        .then(res => res.json())
-
-        .then(data => {
-
-            alert(data.message);
-
-            loadMenu();
-
-        });
-
+    .then(data => {
+        alert(data.message);
+        loadMenu();
     });
 
 }
-/* UPDATE PRICE */
-
 function updatePrice(){
 
     let name = prompt("Enter Food Name");
 
-    if(name == null || name.trim() == ""){
+    if(!name || name.trim() === ""){
         alert("❌ Food name cannot be empty");
         return;
     }
 
     let newPrice = prompt("Enter New Price");
 
-    if(newPrice == null || newPrice.trim() == ""){
-        alert("❌ Price cannot be empty");
-        return;
-    }
-
-    if(isNaN(newPrice) || Number(newPrice) <= 0){
+    if(!newPrice || isNaN(newPrice)){
         alert("❌ Enter valid price");
         return;
     }
 
-    
+    fetch(`http://localhost:5000/api/foods/${name}`, {
 
-     fetch("http://localhost:5000/api/foods")
+        method: "PUT",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            price: Number(newPrice)
+        })
+
+    })
+
     .then(res => res.json())
-    .then(menu => {
 
-        let itemFound = menu.find(function(item){
+    .then(data => {
 
-            return item.name.toLowerCase() === name.toLowerCase();
+        alert(data.message);
 
-        });
-
-        if(itemFound){
-
-            fetch(`http://localhost:5000/api/foods/${itemFound.id}`, {
-
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    price: Number(newPrice)
-                })
-
-            })
-
-            .then(res => res.json())
-
-            .then(data => {
-
-                alert(data.message);
-
-                loadMenu();
-
-            });
-
-        }
-
-        else{
-
-            alert("❌ Item not found in menu");
-
-        }
+        loadMenu();
 
     });
 
