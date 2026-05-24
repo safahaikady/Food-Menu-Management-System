@@ -2,12 +2,16 @@ const db = require("../config/dbConfig");
 
 // GET all foods
 const getFoods = (req, res) => {
+
     db.query("SELECT * FROM foods", (err, result) => {
+
         if (err) {
-            res.status(500).json({ error: err });
-        } else {
-            res.json(result);
+            return res.status(500).json({
+                error: err.message
+            });
         }
+
+        res.json(result);
     });
 };
 
@@ -17,11 +21,19 @@ const addFood = (req, res) => {
     const { name, price, image } = req.body;
 
     // Check if item already exists
-    const checkQuery = "SELECT * FROM foods WHERE name = ?";
+    const checkQuery =
+        "SELECT * FROM foods WHERE LOWER(name)=LOWER(?)";
 
     db.query(checkQuery, [name], (err, result) => {
 
+        if (err) {
+            return res.status(500).json({
+                error: err.message
+            });
+        }
+
         if (result.length > 0) {
+
             return res.json({
                 message: "❌ Item already exists"
             });
@@ -33,56 +45,30 @@ const addFood = (req, res) => {
         db.query(sql, [name, price, image], (err, result) => {
 
             if (err) {
-                res.status(500).json({ error: err });
-            } else {
-                res.json({
-                    message: "✅ Item added successfully"
+                return res.status(500).json({
+                    error: err.message
                 });
             }
+
+            res.json({
+                message: "✅ Item added successfully"
+            });
+
         });
+
     });
+
 };
 
+// DELETE food using ID
 const deleteFood = (req, res) => {
 
-    const name = req.params.name;
-
-    const checkQuery = "SELECT * FROM foods WHERE LOWER(name) = LOWER(?)";
-
-    db.query(checkQuery, [name], (err, result) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        if (result.length === 0) {
-            return res.json({ message: "❌ Item not found" });
-        }
-
-        const sql = "DELETE FROM foods WHERE LOWER(name) = LOWER(?)";
-
-        db.query(sql, [name], (err) => {
-
-            if (err) return res.status(500).json({ error: err.message });
-
-            res.json({ message: "✅ Item deleted successfully" });
-        });
-    });
-};
-
-// UPDATE food by name
-// UPDATE PRICE
-const updateFood = (req, res) => {
-
-    console.log(req.params);
-    console.log(req.body);
-
-    const foodName = req.params.name;
-
-    const price = req.body.price;
+    const id = req.params.id;
 
     const checkQuery =
-        "SELECT * FROM foods WHERE LOWER(name)=LOWER(?)";
+        "SELECT * FROM foods WHERE id=?";
 
-    db.query(checkQuery, [foodName], (err, result) => {
+    db.query(checkQuery, [id], (err, result) => {
 
         if (err) {
             return res.status(500).json({
@@ -91,17 +77,66 @@ const updateFood = (req, res) => {
         }
 
         if (result.length === 0) {
+
             return res.json({
                 message: "❌ Item not found"
             });
         }
 
         const sql =
-            "UPDATE foods SET price=? WHERE LOWER(name)=LOWER(?)";
+            "DELETE FROM foods WHERE id=?";
 
-        db.query(sql, [price, foodName], (err, result) => {
+        db.query(sql, [id], (err, result) => {
 
             if (err) {
+                return res.status(500).json({
+                    error: err.message
+                });
+            }
+
+            res.json({
+                message: "✅ Item deleted successfully"
+            });
+
+        });
+
+    });
+
+};
+
+// UPDATE food price using ID
+const updateFood = (req, res) => {
+
+    const id = req.params.id;
+
+    const { price } = req.body;
+
+    const checkQuery =
+        "SELECT * FROM foods WHERE id=?";
+
+    db.query(checkQuery, [id], (err, result) => {
+
+        if (err) {
+
+            return res.status(500).json({
+                error: err.message
+            });
+        }
+
+        if (result.length === 0) {
+
+            return res.json({
+                message: "❌ Item not found"
+            });
+        }
+
+        const sql =
+            "UPDATE foods SET price=? WHERE id=?";
+
+        db.query(sql, [price, id], (err, result) => {
+
+            if (err) {
+
                 return res.status(500).json({
                     error: err.message
                 });
@@ -116,6 +151,7 @@ const updateFood = (req, res) => {
     });
 
 };
+
 module.exports = {
     getFoods,
     addFood,

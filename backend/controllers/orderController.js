@@ -2,43 +2,57 @@ const db = require("../config/dbConfig");
 
 const placeOrder = (req, res) => {
 
-    const { cart, total } = req.body;
+    const { customer_name, items, total } = req.body;
 
-    const orderSql =
-    "INSERT INTO orders(total) VALUES(?)";
+    // Insert into orders table
+    const orderQuery =
+"INSERT INTO orders(customer_name, total) VALUES(?, ?)";
 
-    db.query(orderSql,[total],(err,result)=>{
+    db.query(orderQuery, [customer_name, total], (err, orderResult) => {
 
-        if(err){
-            res.json(err);
+        if (err) {
+            return res.status(500).json({
+                error: err.message
+            });
         }
 
-        else{
+        // Get inserted order ID
+        const orderId = orderResult.insertId;
 
-            const orderId = result.insertId;
+        // Prepare order_items values
+const values = [];
 
-            cart.forEach(item => {
+items.forEach(item => {
 
-                const itemSql =
-                "INSERT INTO order_items(order_id,food_name,price) VALUES(?,?,?)";
+    values.push([
 
-                db.query(itemSql,[
+        orderId,
+        item.name,
+        item.price,
+        item.quantity
+    ]);
 
-                    orderId,
-                    item.name,
-                    item.price
+});
 
-                ]);
+const itemQuery =
+`INSERT INTO order_items
+(order_id, food_name, price, quantity)
+VALUES ?`;
 
-            });
+db.query(itemQuery, [values], (err2, result2) => {
 
-            db.query("DELETE FROM cart");
+            if (err2) {
+
+                return res.status(500).json({
+                    error: err2.message
+                });
+            }
 
             res.json({
-                message:"✅ Order Placed"
+                message: "✅ Order placed successfully"
             });
 
-        }
+        });
 
     });
 

@@ -12,9 +12,7 @@ const {
 router.get("/", getFoods);
 
 router.post("/", addFood);
-
-router.delete("/:name", deleteFood);
-
-router.put("/:name", updateFood);
+router.delete("/:id", deleteFood);
+router.put("/:id", updateFood);
 
 module.exports = router;

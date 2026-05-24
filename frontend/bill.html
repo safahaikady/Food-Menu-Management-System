@@ -13,7 +13,7 @@
     <div id="bill-box" class="home-box">
 
         <h2>Order Summary</h2>
-
+        <h2 id="customer-name"></h2>
         <ul id="bill-items"></ul>
 
         <h3>Total: ₹<span id="bill-total"></span></h3>
@@ -28,12 +28,17 @@
 
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
         let total = localStorage.getItem("total") || 0;
+        let customerName = localStorage.getItem("customerName");
 
+        document.getElementById("customer-name").innerText =
+        "Customer Name: " + customerName;
         let list = document.getElementById("bill-items");
 
         cart.forEach(function(i) {
             let li = document.createElement("li");
-            li.innerText = i.name + " - ₹" + i.price;
+           li.innerText =
+i.name + " x " + i.quantity +
+" - ₹" + (i.price * i.quantity);
             list.appendChild(li);
         });
 
