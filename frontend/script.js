@@ -1,13 +1,15 @@
-const API_URL = "https://food-menu-management-system.onrender.com";
-
 let total = 0;
-let cart = [];
+let cart=[];
+
 
 /* DEFAULT MENU */
 
-function loadMenu() {
 
-fetch(`${API_URL}/api/foods`)
+
+
+function loadMenu(){
+
+fetch("http://localhost:5000/api/foods")
 .then(res => res.json())
 .then(menu => {
 
@@ -26,12 +28,11 @@ fetch(`${API_URL}/api/foods`)
 
             <img src="${item.image}"
             onclick="addToCart('${item.name}',${item.price})">
-
             <p>ID: ${item.id}</p>   
-
             <h3>${item.name}</h3>
 
             <p>₹${item.price}</p>
+            
 
             <button onclick="addToCart('${item.name}',${item.price})">
                 Add to Cart
@@ -41,12 +42,10 @@ fetch(`${API_URL}/api/foods`)
         `;
     });
 
-})
-.catch(error => {
-    console.log(error);
 });
 
 }
+
 
 /* ADMIN LOGIN */
 
@@ -79,8 +78,8 @@ function login(){
     }
 }
 
-/* ADD TO CART */
 
+// ADD TO CART
 function addToCart(name, price){
 
     let existingItem = cart.find(item => item.name === name);
@@ -107,15 +106,10 @@ function addToCart(name, price){
     displayCart();
 }
 
-/* DISPLAY CART */
-
+// DISPLAY CART
 function displayCart(){
 
     let cartItems = document.getElementById("cart-items");
-
-    if(cartItems == null){
-        return;
-    }
 
     cartItems.innerHTML = "";
 
@@ -125,14 +119,14 @@ function displayCart(){
 
         li.innerHTML = `
 
-        ${item.name} x ${item.quantity}
-        - ₹${item.price * item.quantity}
+    ${item.name} x ${item.quantity}
+    - ₹${item.price * item.quantity}
 
-        <button class="remove-btn" onclick="removeFromCart(${index})">
-            ❌
-        </button>
+    <button class="remove-btn" onclick="removeFromCart(${index})">
+         ❌
+    </button>
 
-        `;
+`;
 
         cartItems.appendChild(li);
 
@@ -141,7 +135,6 @@ function displayCart(){
     document.getElementById("total").innerText = total;
 }
 
-/* REMOVE FROM CART */
 
 function removeFromCart(index){
 
@@ -158,8 +151,7 @@ function removeFromCart(index){
     displayCart();
 }
 
-/* GENERATE BILL */
-
+// GENERATE BILL
 function generateBill(){
 
     if(cart.length === 0){
@@ -178,7 +170,7 @@ function generateBill(){
         return;
     }
 
-    fetch(`${API_URL}/api/orders/place`, {
+    fetch("http://localhost:5000/api/orders/place", {
 
         method: "POST",
 
@@ -198,11 +190,9 @@ function generateBill(){
     .then(res => res.json())
 
     .then(data => {
-
         if(data.message){
             alert(data.message);
         }
-
         localStorage.setItem("customerName", customerName);
 
         localStorage.setItem("cart", JSON.stringify(cart));
@@ -211,16 +201,9 @@ function generateBill(){
 
         window.location.href = "bill.html";
 
-    })
-
-    .catch(error => {
-        console.log(error);
     });
 
 }
-
-/* ADD ITEM */
-
 function addItem(){
 
     let name = prompt("Enter Food Name");
@@ -249,7 +232,7 @@ function addItem(){
         return;
     }
 
-    fetch(`${API_URL}/api/foods`, {
+    fetch("http://localhost:5000/api/foods", {
 
         method: "POST",
 
@@ -273,14 +256,9 @@ function addItem(){
 
         loadMenu();
 
-    })
-
-    .catch(error => {
-        console.log(error);
     });
 
 }
-
 /* DELETE ITEM */
 
 function deleteItem(){
@@ -292,7 +270,7 @@ function deleteItem(){
         return;
     }
 
-    fetch(`${API_URL}/api/foods/${id}`, {
+    fetch(`http://localhost:5000/api/foods/${id}`, {
 
         method: "DELETE"
 
@@ -306,16 +284,9 @@ function deleteItem(){
 
         loadMenu();
 
-    })
-
-    .catch(error => {
-        console.log(error);
     });
 
 }
-
-/* UPDATE PRICE */
-
 function updatePrice(){
 
     let id = prompt("Enter Food ID");
@@ -332,7 +303,7 @@ function updatePrice(){
         return;
     }
 
-    fetch(`${API_URL}/api/foods/${id}`, {
+    fetch(`http://localhost:5000/api/foods/${id}`, {
 
         method: "PUT",
 
@@ -354,14 +325,9 @@ function updatePrice(){
 
         loadMenu();
 
-    })
-
-    .catch(error => {
-        console.log(error);
     });
 
 }
-
 /* EXIT */
 
 function exitPanel(){
@@ -369,17 +335,15 @@ function exitPanel(){
     window.location.href = "index.html";
 }
 
+
 /* AUTO LOAD MENU */
 
 loadMenu();
 
-fetch(`${API_URL}/api/foods`)
+fetch("http://localhost:5000/api/foods")
 .then(res => res.json())
 .then(data => {
 
     console.log(data);
 
-})
-.catch(error => {
-    console.log(error);
 });
