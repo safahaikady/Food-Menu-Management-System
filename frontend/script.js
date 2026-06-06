@@ -1,93 +1,173 @@
+
 let total = 0;
-let cart=[];
 
-
-/* DEFAULT MENU */
-
+let cart = [];
 
 
 
-function loadMenu(){
+/* LOAD MENU */
 
-fetch("http://localhost:5000/api/foods")
-.then(res => res.json())
-.then(menu => {
+function loadMenu() {
 
-    let menuContainer = document.getElementById("menu-items");
+    fetch("http://localhost:5000/api/foods")
 
-    if(menuContainer == null){
-        return;
-    }
+    .then(res => res.json())
 
-    menuContainer.innerHTML = "";
+    .then(menu => {
 
-    menu.forEach(function(item){
+        let menuContainer =
+        document.getElementById("menu-items");
 
-        menuContainer.innerHTML += `
-        <div class="food-card">
+        if(menuContainer == null){
+            return;
+        }
 
-            <img src="${item.image}"
-            onclick="addToCart('${item.name}',${item.price})">
-            <p>ID: ${item.id}</p>   
-            <h3>${item.name}</h3>
+        menuContainer.innerHTML = "";
 
-            <p>₹${item.price}</p>
-            
 
-            <button onclick="addToCart('${item.name}',${item.price})">
-                Add to Cart
-            </button>
 
-        </div>
-        `;
+        // GROUP CATEGORY WISE
+
+        let groupedFoods = {};
+
+        menu.forEach(function(item){
+
+            if(!groupedFoods[item.category]){
+
+                groupedFoods[item.category] = [];
+            }
+
+            groupedFoods[item.category].push(item);
+        });
+
+
+
+        // DISPLAY CATEGORY
+
+        for(let category in groupedFoods){
+
+            menuContainer.innerHTML += `
+
+                <div class="category-title">
+                    ${category}
+                </div>
+
+            `;
+
+
+
+            groupedFoods[category].forEach(function(item){
+
+                menuContainer.innerHTML += `
+
+                <div class="food-card">
+
+                    <img src="${item.image}"
+                    onclick="addToCart('${item.name}', ${item.price})">
+
+                    <p>ID: ${item.food_no}</p>
+
+                    <h3>${item.name}</h3>
+
+                    <p>₹${item.price}</p>
+
+                    <button onclick="addToCart('${item.name}', ${item.price})">
+
+                        Add to Cart
+
+                    </button>
+
+                </div>
+
+                `;
+            });
+
+        }
+
     });
 
-});
-
 }
+
 
 
 /* ADMIN LOGIN */
 
 function login(){
 
-    let username = document.getElementById("username").value;
+    let username =
+    document.getElementById("username").value;
 
-    let password = document.getElementById("password").value;
+    let password =
+    document.getElementById("password").value;
 
-    if(username == "admin" && password == "1234"){
+
+    fetch("http://localhost:5000/api/admin/login", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            username: username,
+            password: password
+        })
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
 
         document.getElementById("message").innerHTML =
-        "✅ Login Successful";
+        data.message;
 
-        document.getElementById("message").style.color = "green";
 
-        setTimeout(function(){
+        if(data.success){
 
-            window.location.href = "dashboard.html";
+            document.getElementById("message").style.color =
+            "green";
 
-        },1000);
-    }
 
-    else{
+            // STORE ROLE
 
-        document.getElementById("message").innerHTML =
-        "❌ Invalid Username or Password";
+            localStorage.setItem(
+                "role",
+                data.role
+            );
 
-        document.getElementById("message").style.color = "red";
-    }
+
+            setTimeout(function(){
+
+                window.location.href =
+                "dashboard.html";
+
+            },1000);
+        }
+
+        else{
+
+            document.getElementById("message").style.color =
+            "red";
+        }
+
+    });
+
 }
 
 
-// ADD TO CART
+/* ADD TO CART */
+
 function addToCart(name, price){
 
-    let existingItem = cart.find(item => item.name === name);
+    let existingItem =
+    cart.find(item => item.name === name);
 
     if(existingItem){
 
         existingItem.quantity += 1;
-
     }
 
     else{
@@ -98,7 +178,6 @@ function addToCart(name, price){
             price: price,
             quantity: 1
         });
-
     }
 
     total += price;
@@ -106,10 +185,14 @@ function addToCart(name, price){
     displayCart();
 }
 
-// DISPLAY CART
+
+
+/* DISPLAY CART */
+
 function displayCart(){
 
-    let cartItems = document.getElementById("cart-items");
+    let cartItems =
+    document.getElementById("cart-items");
 
     cartItems.innerHTML = "";
 
@@ -119,22 +202,28 @@ function displayCart(){
 
         li.innerHTML = `
 
-    ${item.name} x ${item.quantity}
-    - ₹${item.price * item.quantity}
+            ${item.name} x ${item.quantity}
+            - ₹${item.price * item.quantity}
 
-    <button class="remove-btn" onclick="removeFromCart(${index})">
-         ❌
-    </button>
+            <button class="remove-btn"
+            onclick="removeFromCart(${index})">
 
-`;
+            ❌
+
+            </button>
+        `;
 
         cartItems.appendChild(li);
 
     });
 
-    document.getElementById("total").innerText = total;
+    document.getElementById("total").innerText =
+    total;
 }
 
+
+
+/* REMOVE FROM CART */
 
 function removeFromCart(index){
 
@@ -145,13 +234,15 @@ function removeFromCart(index){
     if(cart[index].quantity === 0){
 
         cart.splice(index, 1);
-
     }
 
     displayCart();
 }
 
-// GENERATE BILL
+
+
+/* GENERATE BILL */
+
 function generateBill(){
 
     if(cart.length === 0){
@@ -161,9 +252,11 @@ function generateBill(){
         return;
     }
 
-    let customerName = prompt("Enter Customer Name");
+    let customerName =
+    prompt("Enter Customer Name");
 
-    if(!customerName || customerName.trim() === ""){
+    if(!customerName ||
+    customerName.trim() === ""){
 
         alert("❌ Customer name required");
 
@@ -190,47 +283,105 @@ function generateBill(){
     .then(res => res.json())
 
     .then(data => {
+
         if(data.message){
+
             alert(data.message);
         }
-        localStorage.setItem("customerName", customerName);
 
-        localStorage.setItem("cart", JSON.stringify(cart));
+        localStorage.setItem(
+            "customerName",
+            customerName
+        );
 
-        localStorage.setItem("total", total);
+        localStorage.setItem(
+            "cart",
+            JSON.stringify(cart)
+        );
+
+        localStorage.setItem(
+            "total",
+            total
+        );
 
         window.location.href = "bill.html";
 
     });
 
 }
+
+
+
+/* ADD ITEM */
+
 function addItem(){
+
+    let category_id = prompt(
+
+`Select Category:
+
+1 → Starter
+2 → Rice items
+3 → Dessert
+4 → South Indian
+5 → Chicken Specials
+6 → Drinks`
+
+    );
+
+    if(category_id == null ||
+    category_id.trim() == ""){
+
+        alert("❌ Select Category");
+
+        return;
+    }
+
+
 
     let name = prompt("Enter Food Name");
 
-    if(name == null || name.trim() == ""){
+    if(name == null ||
+    name.trim() == ""){
+
         alert("❌ Food name cannot be empty");
+
         return;
     }
+
+
 
     let price = prompt("Enter Price");
 
-    if(price == null || price.trim() == ""){
+    if(price == null ||
+    price.trim() == ""){
+
         alert("❌ Price cannot be empty");
+
         return;
     }
 
-    if(isNaN(price) || Number(price) <= 0){
+    if(isNaN(price) ||
+    Number(price) <= 0){
+
         alert("❌ Enter valid price");
+
         return;
     }
+
+
 
     let image = prompt("Enter Image Path");
 
-    if(image == null || image.trim() == ""){
+    if(image == null ||
+    image.trim() == ""){
+
         alert("❌ Image path cannot be empty");
+
         return;
     }
+
+
 
     fetch("http://localhost:5000/api/foods", {
 
@@ -241,8 +392,13 @@ function addItem(){
         },
 
         body: JSON.stringify({
+
+            category_id: Number(category_id),
+
             name: name,
+
             price: Number(price),
+
             image: image
         })
 
@@ -259,20 +415,56 @@ function addItem(){
     });
 
 }
+
+
+
 /* DELETE ITEM */
 
 function deleteItem(){
 
-    let id = prompt("Enter Food ID To Delete");
+    let category_id = prompt(
 
-    if(!id || isNaN(id)){
-        alert("❌ Enter valid ID");
+`Select Category:
+
+1 → Starter
+2 → Rice items
+3 → Dessert
+4 → South Indian
+5 → Chicken Specials
+6 → Drinks`
+
+    );
+
+    if(!category_id){
+
+        alert("❌ Select category");
+
         return;
     }
 
+
+    let id = prompt("Enter Food ID To Delete");
+
+    if(!id || isNaN(id)){
+
+        alert("❌ Enter valid ID");
+
+        return;
+    }
+
+
     fetch(`http://localhost:5000/api/foods/${id}`, {
 
-        method: "DELETE"
+        method: "DELETE",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            category_id: Number(category_id)
+        })
 
     })
 
@@ -287,21 +479,53 @@ function deleteItem(){
     });
 
 }
+
+
+
+/* UPDATE PRICE */
+
 function updatePrice(){
+
+    let category_id = prompt(
+
+`Select Category:
+
+1 → Starter
+2 → Rice items
+3 → Dessert
+4 → South Indian
+5 → Chicken Specials
+6 → Drinks`
+
+    );
+
+    if(!category_id){
+
+        alert("❌ Select category");
+
+        return;
+    }
+
 
     let id = prompt("Enter Food ID");
 
     if(!id || isNaN(id)){
+
         alert("❌ Enter valid ID");
+
         return;
     }
+
 
     let newPrice = prompt("Enter New Price");
 
     if(!newPrice || isNaN(newPrice)){
+
         alert("❌ Enter valid price");
+
         return;
     }
+
 
     fetch(`http://localhost:5000/api/foods/${id}`, {
 
@@ -312,6 +536,9 @@ function updatePrice(){
         },
 
         body: JSON.stringify({
+
+            category_id: Number(category_id),
+
             price: Number(newPrice)
         })
 
@@ -328,6 +555,9 @@ function updatePrice(){
     });
 
 }
+
+
+
 /* EXIT */
 
 function exitPanel(){
@@ -336,14 +566,22 @@ function exitPanel(){
 }
 
 
+
 /* AUTO LOAD MENU */
 
 loadMenu();
 
+
+
+/* CHECK API */
+
 fetch("http://localhost:5000/api/foods")
+
 .then(res => res.json())
+
 .then(data => {
 
     console.log(data);
 
 });
+

@@ -1,11 +1,32 @@
 const db = require("../config/dbConfig");
 
-// GET all foods
+
+
+// GET ALL FOODS
+
 const getFoods = (req, res) => {
 
-    db.query("SELECT * FROM foods", (err, result) => {
+    const sql = `
+        SELECT 
+            foods.food_no,
+            foods.category_id,
+            foods.name,
+            foods.price,
+            foods.image,
+            category.name AS category
+
+        FROM foods
+
+        JOIN category
+        ON foods.category_id = category.category_id
+
+        ORDER BY foods.category_id, foods.food_no
+    `;
+
+    db.query(sql, (err, result) => {
 
         if (err) {
+
             return res.status(500).json({
                 error: err.message
             });
@@ -15,18 +36,30 @@ const getFoods = (req, res) => {
     });
 };
 
-// ADD food
+
+
+// ADD FOOD
+
 const addFood = (req, res) => {
 
-    const { name, price, image } = req.body;
+    const {
+        category_id,
+        name,
+        price,
+        image
+    } = req.body;
 
-    // Check if item already exists
+
+
+    // CHECK DUPLICATE
+
     const checkQuery =
-        "SELECT * FROM foods WHERE LOWER(name)=LOWER(?)";
+    "SELECT * FROM foods WHERE LOWER(name)=LOWER(?)";
 
     db.query(checkQuery, [name], (err, result) => {
 
         if (err) {
+
             return res.status(500).json({
                 error: err.message
             });
@@ -39,20 +72,64 @@ const addFood = (req, res) => {
             });
         }
 
-        const sql =
-            "INSERT INTO foods (name, price, image) VALUES (?, ?, ?)";
 
-        db.query(sql, [name, price, image], (err, result) => {
+
+        // GET NEXT FOOD NUMBER INSIDE CATEGORY
+
+        const numberQuery = `
+            SELECT IFNULL(MAX(food_no), 0) + 1 AS nextFoodNo
+            FROM foods
+            WHERE category_id = ?
+        `;
+
+        db.query(numberQuery, [category_id], (err, data) => {
 
             if (err) {
+
                 return res.status(500).json({
                     error: err.message
                 });
             }
 
-            res.json({
-                message: "✅ Item added successfully"
-            });
+            const food_no = data[0].nextFoodNo;
+
+
+
+            // INSERT FOOD
+
+            const sql = `
+                INSERT INTO foods
+                (food_no, category_id, name, price, image)
+
+                VALUES (?, ?, ?, ?, ?)
+            `;
+
+            db.query(
+
+                sql,
+
+                [
+                    food_no,
+                    category_id,
+                    name,
+                    price,
+                    image
+                ],
+
+                (err, result) => {
+
+                    if (err) {
+
+                        return res.status(500).json({
+                            error: err.message
+                        });
+                    }
+
+                    res.json({
+                        message:`✅ ${name} added successfully`
+                    });
+                }
+            );
 
         });
 
@@ -60,80 +137,107 @@ const addFood = (req, res) => {
 
 };
 
-// DELETE food using ID
+
+
+// DELETE FOOD
+
+
 const deleteFood = (req, res) => {
 
-    const id = req.params.id;
+    const food_no = req.params.id;
+
+    const category_id = req.body.category_id;
+
+
+    // GET FOOD NAME
 
     const checkQuery =
-        "SELECT * FROM foods WHERE id=?";
+    "SELECT name FROM foods WHERE food_no=? AND category_id=?";
 
-    db.query(checkQuery, [id], (err, result) => {
 
-        if (err) {
-            return res.status(500).json({
-                error: err.message
-            });
-        }
+    db.query(
 
-        if (result.length === 0) {
+        checkQuery,
 
-            return res.json({
-                message: "❌ Item not found"
-            });
-        }
+        [food_no, category_id],
 
-        const sql =
-            "DELETE FROM foods WHERE id=?";
-
-        db.query(sql, [id], (err, result) => {
+        (err, result) => {
 
             if (err) {
+
                 return res.status(500).json({
                     error: err.message
                 });
             }
 
-            res.json({
-                message: "✅ Item deleted successfully"
-            });
+            if(result.length === 0){
 
-        });
+                return res.json({
+                    message: "❌ Food item not found"
+                });
+            }
 
-    });
 
+            const foodName = result[0].name;
+
+
+            // DELETE QUERY
+
+            const sql =
+            "DELETE FROM foods WHERE food_no=? AND category_id=?";
+
+            db.query(
+
+                sql,
+
+                [food_no, category_id],
+
+                (err, result) => {
+
+                    if (err) {
+
+                        return res.status(500).json({
+                            error: err.message
+                        });
+                    }
+
+                    res.json({
+                        message: `✅ ${foodName} deleted successfully`
+                    });
+                }
+            );
+
+        }
+    );
 };
 
-// UPDATE food price using ID
+
+
+
+
 const updateFood = (req, res) => {
 
-    const id = req.params.id;
+    const food_no = req.params.id;
 
-    const { price } = req.body;
+    const {
+        category_id,
+        price
+    } = req.body;
+
+
+    // GET FOOD NAME
 
     const checkQuery =
-        "SELECT * FROM foods WHERE id=?";
+    "SELECT name FROM foods WHERE food_no=? AND category_id=?";
 
-    db.query(checkQuery, [id], (err, result) => {
 
-        if (err) {
+    db.query(
 
-            return res.status(500).json({
-                error: err.message
-            });
-        }
+        checkQuery,
 
-        if (result.length === 0) {
+        [food_no, category_id],
 
-            return res.json({
-                message: "❌ Item not found"
-            });
-        }
-
-        const sql =
-            "UPDATE foods SET price=? WHERE id=?";
-
-        db.query(sql, [price, id], (err, result) => {
+        (err, result) => {
 
             if (err) {
 
@@ -142,15 +246,53 @@ const updateFood = (req, res) => {
                 });
             }
 
-            res.json({
-                message: "✅ Price updated successfully"
-            });
+            if(result.length === 0){
 
-        });
+                return res.json({
+                    message: "❌ Food item not found"
+                });
+            }
 
-    });
 
+            const foodName = result[0].name;
+
+
+            // UPDATE QUERY
+
+            const sql =
+            "UPDATE foods SET price=? WHERE food_no=? AND category_id=?";
+
+            db.query(
+
+                sql,
+
+                [
+                    price,
+                    food_no,
+                    category_id
+                ],
+
+                (err, result) => {
+
+                    if (err) {
+
+                        return res.status(500).json({
+                            error: err.message
+                        });
+                    }
+
+                    res.json({
+                        message: `✅ ${foodName} price updated successfully`
+                    });
+                }
+            );
+
+        }
+    );
 };
+
+
+
 
 module.exports = {
     getFoods,

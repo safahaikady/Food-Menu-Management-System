@@ -17,7 +17,10 @@
         <ul id="bill-items"></ul>
 
         <h3>Total: ₹<span id="bill-total"></span></h3>
+        <p>Tax: ₹<span id="tax"></span></p>
 
+        <h3>Total Amount:
+₹<span id="grand-total"></span></h3>
         <button onclick="window.location.href='index.html'">
             Back
         </button>
@@ -27,7 +30,7 @@
     <script>
 
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
-        let total = localStorage.getItem("total") || 0;
+       let total = Number(localStorage.getItem("total")) || 0;
         let customerName = localStorage.getItem("customerName");
 
         document.getElementById("customer-name").innerText =
@@ -44,6 +47,16 @@ i.name + " x " + i.quantity +
 
         document.getElementById("bill-total").innerText = total;
 
+
+let tax = total * 0.05;
+
+let grandTotal = total + tax;
+
+document.getElementById("tax").innerText =
+tax;
+
+document.getElementById("grand-total").innerText =
+grandTotal;
     </script>
 
 </body>

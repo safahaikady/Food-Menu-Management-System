@@ -3,7 +3,9 @@ const db = require("../config/dbConfig");
 const placeOrder = (req, res) => {
 
     const { customer_name, items, total } = req.body;
+const tax = total * 0.05;
 
+const total_amount = total + tax;
     // Insert into orders table
     const orderQuery =
 "INSERT INTO orders(customer_name, total) VALUES(?, ?)";
@@ -33,7 +35,35 @@ items.forEach(item => {
     ]);
 
 });
+const billQuery = `
+    INSERT INTO bill
+    (order_id,amount, tax, total_amount)
 
+    VALUES (?,?, ?, ?)
+`;
+
+db.query(
+
+    billQuery,
+
+    [
+        orderId, 
+        total,
+        tax,
+        total_amount
+
+    ],
+
+    (err, result) => {
+
+        if(err){
+
+            return res.status(500).json({
+                error: err.message
+            });
+        }
+    }
+);
 const itemQuery =
 `INSERT INTO order_items
 (order_id, food_name, price, quantity)
